@@ -4,7 +4,7 @@ using DataFrames
 using CSV
 using DelimitedFiles
 using JLD
-fpath = joinpath(pwd(),"B0")
+fpath = pwd()
 include(joinpath(fpath,"libs/BM_OrbitalMoment_mod.jl"))
 
 params = Params(dθ=0.8π/180)

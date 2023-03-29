@@ -5,7 +5,7 @@ using CSV
 using DelimitedFiles
 using JLD
 # using Peaks
-fpath = joinpath(pwd(),"B0")
+fpath = pwd()
 include(joinpath(fpath,"libs/BM_mod.jl"))
 include(joinpath(fpath,"libs/helpers_transport.jl"))
 include(joinpath(fpath,"libs/helpers.jl"))

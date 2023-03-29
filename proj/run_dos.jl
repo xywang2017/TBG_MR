@@ -3,7 +3,7 @@ using Printf
 using DataFrames
 using CSV
 using DelimitedFiles
-fpath = joinpath(pwd(),"B0")
+fpath = pwd()
 include(joinpath(fpath,"libs/BM_mod.jl"))
 include(joinpath(fpath,"libs/helpers.jl"))
 

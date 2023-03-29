@@ -1,4 +1,5 @@
-using Arpack
+# using Arpack
+using LinearAlgebra
 include("Parameters_mod.jl")
 include("Lattice_mod.jl")
 # --------------------------------------------------------------------------------------------------------------- #
@@ -192,7 +193,9 @@ function initHBM(blk::HBM,Latt::Lattice,params::Params;lg::Int=9,_σrotation::Bo
         kval = Latt.kvec[ik] #+ 0.5*(1+1im)/Latt.lk
         ComputeH(H,blk,params,kval)
         # Find the smallest eigenvalue and eigenvectors close to zero
-        vals, vecs = eigs(Hermitian(H),nev=blk.nflat,which=:SM)
+        # vals, vecs = eigs(Hermitian(H),nev=blk.nflat,which=:SM)
+        flat_band_index = (size(H,2)÷2):(size(H,2)÷2+1)
+        vals, vecs = eigen(Hermitian(H),flat_band_index)
         # C2T is broken for hBN alignment
         vecs = vecs + blk.C2T*conj(vecs)
         for i in 1:blk.nflat

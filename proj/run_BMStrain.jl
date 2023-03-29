@@ -1,7 +1,7 @@
 using PyPlot
 using Printf
 using DelimitedFiles
-fpath = joinpath(pwd(),"B0")
+fpath = pwd()
 include(joinpath(fpath,"libs/BM_mod.jl"))
 
 
