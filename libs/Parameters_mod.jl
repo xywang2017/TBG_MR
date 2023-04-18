@@ -46,9 +46,9 @@ using Parameters
     T2::Matrix{ComplexF64} = [[w0 w1*ω];[w1*conj(ω) w0]]  # t -> b along +g1
 
     # heterostrain
-    ϵ::Float64 = 0.0
+    ϵ::Float64 = 0.005
     φ::Float64 = 0.0*π/180
-    ν::Float64 =  0.16
+    ν::Float64 =  -1
     ϵxx::Float64 = -ϵ * cos(φ)^2 + ν * ϵ * sin(φ)^2
     ϵyy::Float64 = ν * ϵ * cos(φ)^2 - ϵ * sin(φ)^2
     ϵxy::Float64 = (1+ν) * ϵ * cos(φ) * sin(φ)
@@ -64,7 +64,7 @@ using Parameters
     ϵ2::Float64 = (1-α) * ϵ # top layer  # ϵ2 - ϵ1 = ϵ
 
     # deformation potential strength 
-    Da::Float64 = 0  # meV
+    Da::Float64 = 0.0  # meV
 end
 
 function initParamsWithStrain_old(params::Params)

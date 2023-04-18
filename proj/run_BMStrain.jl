@@ -6,7 +6,7 @@ include(joinpath(fpath,"libs/BM_mod.jl"))
 
 
 ##
-params = Params(ϵ=0.003,φ=0.0*π/180,Da=-4100.0,w0=110.0,_hetero=true,dθ=1.38π/180)
+params = Params(ϵ=0.005,ν=-1,φ=0.0*π/180,Da=0.0,w0=110.0,_hetero=true,dθ=1.38π/180)
 initParamsWithStrain(params)
 Latt = Lattice()
 initLattice(Latt,params;lk=72)
@@ -17,8 +17,8 @@ writedlm(joinpath(fpath,"test/strain_bizhen.txt"),blk.Hk)
 # enegy jmap 
 function plot_map(ϵ::Matrix{Float64},Latt::Lattice)
     fig,ax = subplots(2,figsize=(4,5))
-    ϵ1 = reshape(ϵ[3,:],Latt.lk,Latt.lk)
-    ϵ2 = reshape(ϵ[4,:],Latt.lk,Latt.lk)
+    ϵ1 = reshape(ϵ[1,:],Latt.lk,Latt.lk)
+    ϵ2 = reshape(ϵ[2,:],Latt.lk,Latt.lk)
     kvec = reshape(Latt.kvec,Latt.lk,Latt.lk) ./(params.kb)
     pl=ax[1].contourf(real(kvec),imag(kvec),ϵ1,20,cmap="Spectral")
     colorbar(pl,ax=ax[1])
@@ -68,23 +68,22 @@ function plot_map_filling(ϵ::Matrix{Float64},Latt::Lattice)
     ax[2].plot([0;sqrt(3)/2],[1;1/2],"r+")
     tight_layout()
     display(fig)
-    savefig(joinpath(fpath,"Stanford/BM_map_strain_003.pdf"),transparent=true)
     close(fig)
 end 
 
-plot_map_filling(readdlm(joinpath(fpath,"Stanford/strain_003.txt")),Latt)
+plot_map_filling(readdlm(joinpath(fpath,"test/strain_bizhen.txt")),Latt)
 
 
 ## filling fraction bounds van Hove 
 function plot_map_filling_vanhove(ϵ::Matrix{Float64},Latt::Lattice)
-    fig,ax = subplots(2,1,sharex=true,figsize=(4,4))
+    fig,ax = subplots(2,figsize=(4,5))
     ϵ1 = reshape(ϵ[1,:],Latt.lk,Latt.lk)
     ϵ2 = reshape(ϵ[2,:],Latt.lk,Latt.lk)
     # levels2 = [0.5435] * maximum(abs.(ϵ)) # 0.004, 40 degrees
     # levels2 = [0.4603,0.6219] * maximum(abs.(ϵ)) # 0.004, 30 degrees
     # levels2 = [0.0935,0.4475,0.555] * maximum(abs.(ϵ))  #0.003, 10 degrees
-    levels1 = [-0.25009] * maximum(abs.(ϵ)) # 0.000
-    levels2 = [0.3141] * maximum(abs.(ϵ)) # 0.000
+    levels1 = [-0.2765] * maximum(abs.(ϵ)) # 0.000
+    levels2 = [0.2765] * maximum(abs.(ϵ)) # 0.000
     # levels2 = [0.3266,0.361,0.4286] * maximum(abs.(ϵ)) # 0.01, 0 degrees
     ν2 = [8*sum( (sign.(levels2[i] .- ϵ[:] ) .+1)./2 ) / length(ϵ[:]) - 4 for i in eachindex(levels2)]
     ν1 = [8*sum( (sign.(sort(levels1)[i] .- ϵ[:] ) .+1)./2 ) / length(ϵ[:]) - 4 for i in eachindex(levels2)]
@@ -92,7 +91,7 @@ function plot_map_filling_vanhove(ϵ::Matrix{Float64},Latt::Lattice)
     # note that this definition of filling fraction is incorrect if maximum(ϵ1) > minimum(ϵ2)
     kvec = reshape(Latt.kvec,Latt.lk,Latt.lk) ./(sqrt(3)*params.kb)
 
-    pl = ax[1].contourf(real(kvec),imag(kvec),ϵ1,cmap="Spectral_r",levels=20)
+    pl = ax[1].contourf(real(kvec),imag(kvec),ϵ1,cmap="Reds",levels=20)
     colorbar(pl,ax=ax[1],ticks=-70:10:0)
     pl=ax[1].contour(real(kvec),imag(kvec),ϵ1,levels=sort(levels1),colors=["b","m","b"])
     ν2str = Dict(pl.levels[i]=> @sprintf("%1.2f",ν1[i]) for i in eachindex(pl.levels))
@@ -100,9 +99,9 @@ function plot_map_filling_vanhove(ϵ::Matrix{Float64},Latt::Lattice)
     ax[1].plot(real([params.Kt+params.g1;params.Kb+params.g1+params.g2])./(sqrt(3)*params.kb),
             imag([params.Kt+params.g1;params.Kb+params.g1+params.g2])./(sqrt(3)*params.kb),"k*")
     ax[1].plot([0],[0],"kX")
-    # ax[1].axis("equal")
+    ax[1].axis("equal")
 
-    pl = ax[2].contourf(real(kvec),imag(kvec),ϵ2,cmap="Spectral_r",levels=20)
+    pl = ax[2].contourf(real(kvec),imag(kvec),ϵ2,cmap="Greens",levels=20)
     colorbar(pl,ax=ax[2],ticks=0:10:70)
     pl=ax[2].contour(real(kvec),imag(kvec),ϵ2,levels=levels2,colors=["b","b","m"])
     ν2str = Dict(pl.levels[i]=> @sprintf("%1.2f",ν2[i]) for i in eachindex(pl.levels))
@@ -111,14 +110,13 @@ function plot_map_filling_vanhove(ϵ::Matrix{Float64},Latt::Lattice)
     ax[2].plot(real([params.Kt+params.g1;params.Kb+params.g1+params.g2])./(sqrt(3)*params.kb),
     imag([params.Kt+params.g1;params.Kb+params.g1+params.g2])./(sqrt(3)*params.kb),"k*")
     ax[2].plot([0],[0],"kX")
-    # ax[2].axis("equal")
+    ax[2].axis("equal")
     tight_layout()
     display(fig)
-    savefig(joinpath(fpath,"alpha0.8/BM_vanhove_strain_bizhen.pdf"),transparent=true)
     close(fig)
 end 
 
-plot_map_filling_vanhove(readdlm(joinpath(fpath,"alpha0.8/strain_bizhen.txt")),Latt)
+plot_map_filling_vanhove(readdlm(joinpath(fpath,"test/strain_bizhen.txt")),Latt)
 
 ##
 # cut 
