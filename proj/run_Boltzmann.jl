@@ -10,38 +10,38 @@ include(joinpath(fpath,"libs/BM_mod.jl"))
 include(joinpath(fpath,"libs/helpers_transport.jl"))
 include(joinpath(fpath,"libs/helpers.jl"))
 # basic settings
-ϵ, ϕ, Da = 0.002, 0, -4100.0
+ϵ, ϕ, Da = 0.002, 10, -4100.0
 str, str2 = Int(1000*ϵ), Int(Da)
-lk = 256
+lk = 128
 params = Params(ϵ=ϵ,φ=ϕ*π/180,Da=Da,dθ=1.38π/180)
 initParamsWithStrain(params)
 Latt = Lattice()
 initLattice(Latt,params;lk=lk)
 blk = HBM()
-# initHBM(blk,Latt,params;lg=9,_σrotation=false)
+initHBM(blk,Latt,params;lg=9,_σrotation=false)
 # fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2)_$(lk).csv")
 fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2)_$(lk).csv")
 
-# df = DataFrame()
-# df[!,"kx"] = [real(Latt.kvec[i]) for i in 1:length(Latt.kvec) for j in 1:2]
-# df[!,"ky"] = [imag(Latt.kvec[i]) for i in 1:length(Latt.kvec) for j in 1:2]
-# df[!,"Hk"] = blk.Hk[:]
-# df[!,"Vx"] = blk.Vx[:]
-# df[!,"Vy"] = blk.Vy[:]
-# CSV.write(fname,df)
+df = DataFrame()
+df[!,"kx"] = [real(Latt.kvec[i]) for i in 1:length(Latt.kvec) for j in 1:2]
+df[!,"ky"] = [imag(Latt.kvec[i]) for i in 1:length(Latt.kvec) for j in 1:2]
+df[!,"Hk"] = blk.Hk[:]
+df[!,"Vx"] = blk.Vx[:]
+df[!,"Vy"] = blk.Vy[:]
+CSV.write(fname,df)
 df = DataFrame(CSV.File(fname))
 blk.Hk = reshape(df[!,"Hk"],2,:)
 
-# fname = joinpath(fpath,"strain/band_structure/eps_$(str)_Da_$(str2)_special_points_$(lk).csv")
-# df = DataFrame()
-# special_points, special_point_energies,special_point_fillings =
-#         get_special_points(ϵ=ϵ,ϕ=ϕ,Da=Da,_hetero=true,lk=lk,
-#                         fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2)_$(lk).csv"))
-# df[!,"$(ϕ)_k_R"] = real([special_points[1]; special_points[2]])
-# df[!,"$(ϕ)_k_I"] = imag([special_points[1]; special_points[2]])
-# df[!,"$(ϕ)_k_E"] = [special_point_energies[1]; special_point_energies[2]]
-# df[!,"$(ϕ)_k_nu"] = [special_point_fillings[1]; special_point_fillings[2]]
-# CSV.write(fname,df)
+fname = joinpath(fpath,"strain/band_structure/eps_$(str)_Da_$(str2)_special_points_$(lk).csv")
+df = DataFrame()
+special_points, special_point_energies,special_point_fillings =
+        get_special_points(params,ϵ=ϵ,ϕ=ϕ,Da=Da,_hetero=true,lk=lk,
+                        fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2)_$(lk).csv"))
+df[!,"$(ϕ)_k_R"] = real([special_points[1]; special_points[2]])
+df[!,"$(ϕ)_k_I"] = imag([special_points[1]; special_points[2]])
+df[!,"$(ϕ)_k_E"] = [special_point_energies[1]; special_point_energies[2]]
+df[!,"$(ϕ)_k_nu"] = [special_point_fillings[1]; special_point_fillings[2]]
+CSV.write(fname,df)
 # compute transport coefficients
 eBτs = [collect(-10:1:-2);collect(-1:0.1:-0.1);collect(0.1:0.1:1);collect(2:1:10)].*1e-4
 transport_coefficients,FS_collect = mainTransport(blk,Latt,params;eBτs = eBτs,nμs=121);

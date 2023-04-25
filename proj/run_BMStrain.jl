@@ -6,7 +6,8 @@ include(joinpath(fpath,"libs/BM_mod.jl"))
 
 
 ##
-params = Params(ϵ=0.005,ν=-1,φ=0.0*π/180,Da=0.0,w0=110.0,_hetero=true,dθ=1.38π/180)
+# params = Params(ϵ=0.005,ν=-1,φ=0.0*π/180,Da=0.0,w0=110.0,_hetero=true,dθ=1.38π/180)
+params = Params(ϵ=0.001,ν=0.16,φ=50.0*π/180,Da=-0.0,w0=55.0,_hetero=true,dθ=0.7π/180)
 initParamsWithStrain(params)
 Latt = Lattice()
 initLattice(Latt,params;lk=72)
@@ -20,18 +21,18 @@ function plot_map(ϵ::Matrix{Float64},Latt::Lattice)
     ϵ1 = reshape(ϵ[1,:],Latt.lk,Latt.lk)
     ϵ2 = reshape(ϵ[2,:],Latt.lk,Latt.lk)
     kvec = reshape(Latt.kvec,Latt.lk,Latt.lk) ./(params.kb)
-    pl=ax[1].contourf(real(kvec),imag(kvec),ϵ1,20,cmap="Spectral")
+    pl=ax[1].contourf(real(kvec),imag(kvec),ϵ1,20,cmap="coolwarm")
     colorbar(pl,ax=ax[1])
     ax[1].axis("equal")
     ax[1].plot([0;sqrt(3)/2],[1;1/2],"r+")
 
-    pl=ax[2].contourf(real(kvec),imag(kvec),ϵ2,20,cmap="Spectral_r")
+    pl=ax[2].contourf(real(kvec),imag(kvec),ϵ2,20,cmap="coolwarm_r")
     colorbar(pl,ax=ax[2])
     ax[2].axis("equal")
     ax[2].plot([0;sqrt(3)/2],[1;1/2],"r+")
     tight_layout()
     display(fig)
-    savefig(joinpath(fpath,"test/strained_BM_map.pdf"),transparent=true)
+    # savefig(joinpath(fpath,"test/strained_BM_map.pdf"),transparent=true)
     close(fig)
 end 
 
@@ -82,8 +83,8 @@ function plot_map_filling_vanhove(ϵ::Matrix{Float64},Latt::Lattice)
     # levels2 = [0.5435] * maximum(abs.(ϵ)) # 0.004, 40 degrees
     # levels2 = [0.4603,0.6219] * maximum(abs.(ϵ)) # 0.004, 30 degrees
     # levels2 = [0.0935,0.4475,0.555] * maximum(abs.(ϵ))  #0.003, 10 degrees
-    levels1 = [-0.2765] * maximum(abs.(ϵ)) # 0.000
-    levels2 = [0.2765] * maximum(abs.(ϵ)) # 0.000
+    levels1 = [-0.299,-0.281,-0.182] * maximum(abs.(ϵ)) # 0.000
+    levels2 = [0.182,0.281,0.299] * maximum(abs.(ϵ)) # 0.000
     # levels2 = [0.3266,0.361,0.4286] * maximum(abs.(ϵ)) # 0.01, 0 degrees
     ν2 = [8*sum( (sign.(levels2[i] .- ϵ[:] ) .+1)./2 ) / length(ϵ[:]) - 4 for i in eachindex(levels2)]
     ν1 = [8*sum( (sign.(sort(levels1)[i] .- ϵ[:] ) .+1)./2 ) / length(ϵ[:]) - 4 for i in eachindex(levels2)]
@@ -91,9 +92,9 @@ function plot_map_filling_vanhove(ϵ::Matrix{Float64},Latt::Lattice)
     # note that this definition of filling fraction is incorrect if maximum(ϵ1) > minimum(ϵ2)
     kvec = reshape(Latt.kvec,Latt.lk,Latt.lk) ./(sqrt(3)*params.kb)
 
-    pl = ax[1].contourf(real(kvec),imag(kvec),ϵ1,cmap="Reds",levels=20)
+    pl = ax[1].contourf(real(kvec),imag(kvec),ϵ1,cmap="coolwarm",levels=20)
     colorbar(pl,ax=ax[1],ticks=-70:10:0)
-    pl=ax[1].contour(real(kvec),imag(kvec),ϵ1,levels=sort(levels1),colors=["b","m","b"])
+    pl=ax[1].contour(real(kvec),imag(kvec),ϵ1,levels=sort(levels1),colors=["r","b","g"])
     ν2str = Dict(pl.levels[i]=> @sprintf("%1.2f",ν1[i]) for i in eachindex(pl.levels))
     ax[1].clabel(pl,pl.levels,fmt=ν2str,inline=true,fontsize=8)
     ax[1].plot(real([params.Kt+params.g1;params.Kb+params.g1+params.g2])./(sqrt(3)*params.kb),
@@ -101,9 +102,9 @@ function plot_map_filling_vanhove(ϵ::Matrix{Float64},Latt::Lattice)
     ax[1].plot([0],[0],"kX")
     ax[1].axis("equal")
 
-    pl = ax[2].contourf(real(kvec),imag(kvec),ϵ2,cmap="Greens",levels=20)
+    pl = ax[2].contourf(real(kvec),imag(kvec),ϵ2,cmap="coolwarm_r",levels=20)
     colorbar(pl,ax=ax[2],ticks=0:10:70)
-    pl=ax[2].contour(real(kvec),imag(kvec),ϵ2,levels=levels2,colors=["b","b","m"])
+    pl=ax[2].contour(real(kvec),imag(kvec),ϵ2,levels=levels2,colors=["r","b","g"])
     ν2str = Dict(pl.levels[i]=> @sprintf("%1.2f",ν2[i]) for i in eachindex(pl.levels))
     ax[2].clabel(pl,pl.levels,fmt=ν2str,inline=true,fontsize=8)
     # ax[2].set_xticks(-0.5:0.5:1)
