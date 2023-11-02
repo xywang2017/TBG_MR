@@ -252,12 +252,12 @@ end
 function find_special_points_BM(blk::HBM,Latt::Lattice,params::Params)
     # for each band, there are at a minimum 3 van Hove points, 2 Dirac points, and a band minima/maxima 
     special_points = []
-    kvec = reshape(Latt.kvec,Latt.lk,Latt.lk)
+    kvec = reshape(Latt.kvec,:,Latt.lk+1)
     k12grid = reshape(Latt.k1,:,1) .+ 1im*reshape(Latt.k2,1,:)
     for iband in 1:2
         special_points_n = ComplexF64[]
         # fig = figure(figsize=(3,3))
-        pl = contour(real(k12grid),imag(k12grid),reshape(blk.Vx[iband,:],Latt.lk,Latt.lk),levels=[0],colors="r")
+        pl = contour(real(k12grid),imag(k12grid),reshape(blk.Vx[iband,:],size(k12grid,1),size(k12grid,2)),levels=[0],colors="r")
         # pl0 = contour(real(k12grid),imag(k12grid),reshape(blk.Vy[iband,:],Latt.lk,Latt.lk),levels=[0],colors="b")
         # tight_layout()
         # display(fig)
@@ -644,11 +644,11 @@ function mainTransport(blk::HBM,Latt::Lattice,params::Params;eBτs::Vector{Float
     W_max = maximum(blk.Hk)
     μstmp = range(0.96*W_min,0.96*W_max,length=10nμs)
     # μs = ( minimum(blk.Hk) .+ W/ nμs * collect(0.5:(nμs-0.5)))
-    νstmp = [sum( (sign.(μstmp[i] .- reshape(blk.Hk,2,Latt.lk,Latt.lk)[:,1:(end-1),1:(end-1)]) .+1) ./2)/(Latt.lk-1)^2 for i in eachindex(μstmp)]
+    νstmp = [sum( (sign.(μstmp[i] .- reshape(blk.Hk,2,size(k12grid,1),size(k12grid,2))[:,1:(end-1),1:(end-1)]) .+1) ./2)/(size(k12grid,1))^2 for i in eachindex(μstmp)]
     νs = Float64[νstmp[1]]
     μs = Float64[μstmp[1]]
     for i in 2:length(νstmp)
-        if (νstmp[i]-νs[end]) >0.002
+        if (νstmp[i]-νs[end]) >0.005
             push!(νs,νstmp[i])
             push!(μs,μstmp[i])
         end
@@ -659,7 +659,7 @@ function mainTransport(blk::HBM,Latt::Lattice,params::Params;eBτs::Vector{Float
     FS_collect = []
     for iμ in eachindex(μs)
         ωcτs = []
-        if abs(4νs[iμ]-4) < 1e-5 || abs(4νs[iμ]-4) > 0.8
+        if abs(4νs[iμ]-4) < 1e-5 #|| abs(4νs[iμ]-4) > 0.8
             continue 
         end
         println(4νs[iμ]-4)
@@ -671,7 +671,7 @@ function mainTransport(blk::HBM,Latt::Lattice,params::Params;eBτs::Vector{Float
         tmpFS = []
         for iband in 1:2 # need to add valley later
             if μs[iμ] < maximum(blk.Hk[iband,:]) && μs[iμ] > minimum(blk.Hk[iband,:])
-                FS = generate_contours_torus(μs[iμ],reshape(blk.Hk[iband,:],Latt.lk,Latt.lk), k12grid)
+                FS = generate_contours_torus(μs[iμ],reshape(blk.Hk[iband,:],size(k12grid,1),:), k12grid)
                 vxn, vyn, s = boltzmann_characteristics(FS,params,iband)
                 σσ,ωcτ = computeTransport(vxn,vyn,s,eBτs,params)
                 σ0 .= σ0 + σσ

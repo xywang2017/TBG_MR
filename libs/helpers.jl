@@ -89,7 +89,7 @@ function plot_special_points(;fname::String="tmp.csv",flag::String="filling",hli
     fig = figure(figsize=(2.8,2.8))
     colors = ["grey","r","b","g","k","k","g","b","r","grey"]
     iϕs = [5,21]  # strain 003
-    # iϕs = [20,28]  # strain 007
+    iϕs = [12,28]  # strain 007
     ϕs = collect(0:2:60)
     ydata = zeros(Float64,10,length(ϕs))
     for iϕ in eachindex(ϕs)
@@ -139,7 +139,7 @@ function plot_special_points(;fname::String="tmp.csv",flag::String="filling",hli
         end
     end
     for i in 1:10
-        plot(ϕs,ydata[i,:],"-",c=colors[i],ms=3)
+        plot(ϕs,ydata[i,:],"o",c="b",ms=2) #colors[i],ms=1)
     end 
     # for iϕ in eachindex(ϕs)
     #     if norm(ydata[:,iϕ]) > 1e-5

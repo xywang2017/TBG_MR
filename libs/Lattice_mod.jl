@@ -48,8 +48,10 @@ function initLattice(Latt::Lattice,params::Params;lk::Int=12)
         end
         Latt.indkinv[ik] = ((i2inv-1)%lk)*lk + (i1inv-1)%lk+1
     end
-    Latt.k1 = collect(0.5:(lk-0.5)) ./ (lk) 
-    Latt.k2 = collect(0.5:(lk-0.5)) ./ (lk) 
+    # Latt.k1 = collect(0.5:(lk-0.5)) ./ (lk) 
+    # Latt.k2 = collect(0.5:(lk-0.5)) ./ (lk) 
+    Latt.k1 = collect(0:lk) ./ (lk) 
+    Latt.k2 = collect(0:lk) ./ (lk) 
     # Latt.k1 = collect((-lk÷2+0.5):(lk÷2-0.5)) ./ (lk) 
     # Latt.k2 = collect((-lk÷2+0.5):(lk÷2-0.5)) ./ (lk) 
     Latt.kvec = collect(reshape(Latt.k1,:,1) * params.g1 .+ reshape(Latt.k2,1,:) * params.g2)[:]

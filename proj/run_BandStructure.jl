@@ -9,27 +9,32 @@ include(joinpath(fpath,"libs/helpers.jl"))
 
 ##
 lk = 128
-ϵs = collect(0.001:0.001:0.007)
+ϵs = -collect(0.001:0.001:0.007)
 ϕs = collect(0:2:60)
 Da= -4100.0
 iϵ =  2 #parse(Int,ARGS[1])
-iϕ =  1 #parse(Int,ARGS[2])
+# iϕ =  1 #parse(Int,ARGS[2])
+for iϕ in eachindex(ϕs)
+    ϵ = ϵs[iϵ]
+    ϕ = ϕs[iϕ]
+    println(ϵ," ",ϕ," start")
+    str = Int(1000 * ϵ)
+    str2 = Int(Da)
+    params = Params(ϵ=ϵ,φ=ϕ*π/180,Da=Da,_hetero=true,dθ=1.38π/180)
+    initParamsWithStrain(params)
+    get_bandstructure_info(params;ϵ=ϵ,ϕ=ϕ,Da=Da,_hetero=true,lk=lk,
+            fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2).csv"))
+    println(ϵ," ",ϕ," end")
+end
+
 ϵ = ϵs[iϵ]
-ϕ = ϕs[iϕ]
-# println(ϵ," ",ϕ," start")
 str = Int(1000 * ϵ)
 str2 = Int(Da)
-# params = Params(ϵ=ϵ,φ=ϕ*π/180,Da=Da,_hetero=true,dθ=1.38π/180)
-params = Params(ϵ=0.0,φ=ϕ*π/180,Da=Da,_hetero=true,dθ=1.39π/180)
-initParamsWithStrain(params)
-# get_bandstructure_info(params;ϵ=ϵ,ϕ=ϕ,Da=Da,_hetero=true,lk=lk,
-#         fname=joinpath(fpath,"strain/band_structure/w0_0_eps_$(str)_phi_$(ϕ)_Da_$(str2).csv"))
-# println(ϵ," ",ϕ," end")
-# ----
-
 fname = joinpath(fpath,"strain/band_structure/eps_$(str)_Da_$(str2)_special_points.csv")
 df = DataFrame()
 for ϕ in ϕs
+    params = Params(ϵ=ϵ,φ=ϕ*π/180,Da=Da,_hetero=true,dθ=1.38π/180)
+    initParamsWithStrain(params)
     special_points, special_point_energies,special_point_fillings = 
         get_special_points(params;ϵ=ϵ,ϕ=ϕ,Da=Da,_hetero=true,lk=lk,
                         fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2).csv"))
@@ -123,10 +128,10 @@ CSV.write(fname,df)
 #     close(fig)
 # end
 
-# --------------------- plot special points --------------- # 
-# fname = joinpath(fpath,"strain/band_structure/eps_3_Da_-4100_special_points.csv")
-# savename=joinpath(fpath,"strain/band_structure/eps_3_Da_-4100_special_points_filling.pdf")
-# plot_special_points(fname=fname,flag="filling",savename=savename)
+#--------------------- plot special points --------------- # 
+fname = joinpath(fpath,"strain/band_structure/eps_-2_Da_-4100_special_points.csv")
+savename=joinpath(fpath,"strain/band_structure/eps_-2_Da_-4100_special_points_filling.pdf")
+plot_special_points(fname=fname,flag="filling",savename=savename)
 # plot_special_points_combined(fname=fname,flag="energy",savename=savename)
 
 ## plot bounds 
@@ -154,17 +159,17 @@ CSV.write(fname,df)
 
 # --------------------- plot energy maps --------------- # 
 lk = 128
-ϵ = 0.002
+ϵ = -0.002
 str = Int(1000 * ϵ)
-for ϕ in 0:0
-    params = Params(ϵ=ϵ,φ=ϕ*π/180,Da=Da,_hetero=true)
+for ϕ in 30:30
+    params = Params(ϵ=ϵ,φ=ϕ*π/180,Da=Da,_hetero=true,dθ=1.38π/180)
     initParamsWithStrain(params)
     Latt = Lattice()
     initLattice(Latt,params;lk=lk)
     blk = HBM()
-    df = DataFrame(CSV.File(joinpath(fpath,"strain/band_structure/w0_110_eps_$(str)_phi_$(ϕ)_Da_$(str2).csv")))
+    df = DataFrame(CSV.File(joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2).csv")))
     blk.Hk = reshape(df[!,"Hk"],2,:)
-    kvec = reshape(Latt.kvec,Latt.lk,Latt.lk) ./ (sqrt(3)*params.kb)
+    kvec = reshape(Latt.kvec,:,Latt.lk+1) ./ (sqrt(3)*params.kb)
     df = DataFrame( CSV.File(joinpath(fpath,"strain/band_structure/eps_$(str)_Da_$(str2)_special_points.csv")) ) 
     data = df[!,"$(ϕ)_k_E"]
     special_points = df[!,"$(ϕ)_k_R"] + 1im * df[!,"$(ϕ)_k_I"]
@@ -172,7 +177,7 @@ for ϕ in 0:0
     data = data[sortperm(data)]
     νs = [4*sum((sign.(data[i].-blk.Hk).+1)./2)/Latt.lk^2 - 4 for i in 9:11]
     savename = joinpath(fpath,"strain/band_structure/map_eps_$(str)_phi_$(ϕ)_Da_$(str2).pdf")
-    plot_contour_maps(real(kvec),imag(kvec),reshape(blk.Hk,2,Latt.lk,Latt.lk)[2,:,:];
+    plot_contour_maps(real(kvec),imag(kvec),reshape(blk.Hk,2,:,Latt.lk+1)[2,:,:];
                 contours=data[9:11],contour_colors=["b","r","g"],νs=νs,
                 special_points=special_points[[6;8;9:12]], figsize=(3,2.), _legend=false, cmap="Spectral_r",
                 savename = savename)
@@ -192,7 +197,7 @@ for ϕ in 0:0
     initLattice(Latt,params;lk=lk)
     blk = HBM()
     # df = DataFrame(CSV.File(joinpath(fpath,"strain/band_structure/w0_0_eps_$(str)_phi_$(ϕ)_Da_$(str2).csv")))
-    df = DataFrame(CSV.File(joinpath(fpath,"strain/band_structure/w0_0_eps_2_phi_$(ϕ)_Da_$(str2).csv")))
+    df = DataFrame(CSV.File(joinpath(fpath,"strain/band_structure/eps_2_phi_$(ϕ)_Da_$(str2).csv")))
     blk.Hk = reshape(df[!,"Hk"],2,:)
     energies = reshape(blk.Hk,2,Latt.lk,Latt.lk)
     kvec = reshape(Latt.kvec,Latt.lk,Latt.lk) ./ (sqrt(3)*params.kb)
