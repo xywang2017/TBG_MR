@@ -10,7 +10,7 @@ include(joinpath(fpath,"libs/BM_mod.jl"))
 include(joinpath(fpath,"libs/helpers_transport.jl"))
 include(joinpath(fpath,"libs/helpers.jl"))
 # basic settings
-ϵ, ϕ, Da = -0.002, 0, -4100.0
+ϵ, ϕ, Da = 0.002, 30, -4100.0
 str, str2 = Int(1000*ϵ), Int(Da)
 lk = 256
 params = Params(ϵ=ϵ,φ=ϕ*π/180,Da=Da,dθ=1.38π/180)
@@ -31,16 +31,16 @@ CSV.write(fname,df)
 df = DataFrame(CSV.File(fname))
 blk.Hk = reshape(df[!,"Hk"],2,:)
 
-# fname = joinpath(fpath,"strain/band_structure/eps_$(str)_Da_$(str2)_special_points.csv")
-# df = DataFrame()
-# special_points, special_point_energies,special_point_fillings =
-#         get_special_points(params,ϵ=ϵ,ϕ=ϕ,Da=Da,_hetero=true,lk=lk,
-#                         fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2).csv"))
-# df[!,"$(ϕ)_k_R"] = real([special_points[1]; special_points[2]])
-# df[!,"$(ϕ)_k_I"] = imag([special_points[1]; special_points[2]])
-# df[!,"$(ϕ)_k_E"] = [special_point_energies[1]; special_point_energies[2]]
-# df[!,"$(ϕ)_k_nu"] = [special_point_fillings[1]; special_point_fillings[2]]
-# CSV.write(fname,df)
+fname = joinpath(fpath,"strain/band_structure/eps_$(str)_Da_$(str2)_special_points.csv")
+df = DataFrame()
+special_points, special_point_energies,special_point_fillings =
+        get_special_points(params,ϵ=ϵ,ϕ=ϕ,Da=Da,_hetero=true,lk=lk,
+                        fname=joinpath(fpath,"strain/band_structure/eps_$(str)_phi_$(ϕ)_Da_$(str2).csv"))
+df[!,"$(ϕ)_k_R"] = real([special_points[1]; special_points[2]])
+df[!,"$(ϕ)_k_I"] = imag([special_points[1]; special_points[2]])
+df[!,"$(ϕ)_k_E"] = [special_point_energies[1]; special_point_energies[2]]
+df[!,"$(ϕ)_k_nu"] = [special_point_fillings[1]; special_point_fillings[2]]
+CSV.write(fname,df)
 # compute transport coefficients
 eBτs = [collect(-10:1:-2);collect(-1:0.1:-0.1);collect(0.1:0.1:1);collect(2:1:10)].*1e-4
 transport_coefficients,FS_collect = mainTransport(blk,Latt,params;eBτs = eBτs,nμs=121);
@@ -136,7 +136,7 @@ plot_ωcτavg_versus_filling(νs,fname_special_points)
 plot_principle_strain_axis(νs,δθ,fname_special_points)
 
 # geometric --- principal axis plotted against moire unit cell vectors
-plot_principal_strain_axis_vs_unit_cell(170)
+plot_principal_strain_axis_vs_unit_cell(246)
 
 # line cuts at a fixed filling, plot (symmetrized/unsymmetrized) rho vs B
 plot_transport_filling(νs,ρ,"quadratic",2)
